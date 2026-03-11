@@ -137,11 +137,6 @@ export default function Home() {
         </Link>
       </div>
 
-      <div style={{ marginTop: "16px", textAlign: "center" }}>
-        <Link href="/state-manage" style={{ fontSize: "11px" }}>
-          Administrative State Management
-        </Link>
-      </div>
     </div>
   );
 }
