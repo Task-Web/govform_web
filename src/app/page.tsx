@@ -4,6 +4,18 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useCookieOverride } from "@/hooks/use-cookie-override";
 import { useStateApi } from "@/hooks/use-state-api";
+import type { GovFormStateData, Page3Data } from "@/lib/types";
+
+function isPage3Filled(page3: Page3Data): boolean {
+  return !!(
+    page3.email &&
+    page3.phone &&
+    page3.address &&
+    page3.city &&
+    page3.postal_code &&
+    page3.country
+  );
+}
 
 export default function Home() {
   const { ready } = useCookieOverride();
@@ -19,7 +31,10 @@ export default function Home() {
 
   if (!ready) return null;
 
-  const completedPages = (state?.state?.data as Record<string, unknown>)?.completed_pages as string[] || [];
+  const stateData = state?.state?.data as GovFormStateData | undefined;
+  const completedPages = stateData?.completed_pages || [];
+  const page3Data = stateData?.form?.page3;
+  const page3Filled = page3Data ? isPage3Filled(page3Data) : false;
 
   return (
     <div className="gov-container">
@@ -36,8 +51,8 @@ export default function Home() {
         <h2>Instructions for Completing This Form</h2>
 
         <div className="gov-notice">
-          <strong>IMPORTANT:</strong> This form consists of three (3) sections that must be
-          completed in a specific order. Please follow the steps below precisely.
+          <strong>IMPORTANT:</strong> This form consists of three (3) sections. Please note
+          that Section 2 requires Section 3 to be completed first. Follow the steps below.
         </div>
 
         <div className="gov-tut-step">
@@ -48,17 +63,19 @@ export default function Home() {
         </div>
 
         <div className="gov-tut-step">
-          <strong>Step 2 &mdash; Contact Information (Section 3)</strong><br />
-          After completing Section 1, you will be directed to Section 3 (not Section 2).
-          Here you must provide your email address, telephone number, and mailing address.
-          Complete all required fields and click &quot;Next&quot; to continue.
+          <strong>Step 2 &mdash; Travel Document Information (Section 2)</strong><br />
+          Section 2 contains travel document fields. However, <strong>all fields in Section 2
+          will be disabled</strong> until you have completed all required fields in Section 3
+          (Contact Information). You may navigate through Section 2, but you will not be able
+          to enter any data until Section 3 is filled. We recommend proceeding to Section 3
+          first, then returning to Section 2.
         </div>
 
         <div className="gov-tut-step">
-          <strong>Step 3 &mdash; Travel Document Information (Section 2)</strong><br />
-          Section 2 is only accessible after both Section 1 and Section 3 have been completed.
-          In this section, provide your passport number, visa type, purpose of travel,
-          and intended travel dates. Submit the form once all fields are complete.
+          <strong>Step 3 &mdash; Contact Information (Section 3)</strong><br />
+          Provide your email address, telephone number, and mailing address. Once all
+          required fields in this section are completed, the fields in Section 2 will
+          become editable. You may then navigate back to Section 2 to complete it.
         </div>
 
         <hr />
@@ -66,8 +83,7 @@ export default function Home() {
         <div className="gov-notice">
           <strong>Navigation:</strong> Use the &quot;Previous&quot; and &quot;Next&quot; buttons
           at the top of each page to navigate between sections. The page indicator at the top
-          shows your current progress. Section 2 will remain locked until Sections 1 and 3
-          are both completed.
+          shows your current progress.
         </div>
 
         <div className="gov-notice">
@@ -94,20 +110,20 @@ export default function Home() {
               <td>{completedPages.includes("page1") ? "Completed" : "Incomplete"}</td>
             </tr>
             <tr>
-              <td>Section 3</td>
-              <td>Contact Information</td>
-              <td>{completedPages.includes("page3") ? "Completed" : "Incomplete"}</td>
-            </tr>
-            <tr>
               <td>Section 2</td>
               <td>Travel Document Information</td>
               <td>
                 {completedPages.includes("page2")
                   ? "Completed"
-                  : completedPages.includes("page1") && completedPages.includes("page3")
+                  : page3Filled
                   ? "Unlocked"
-                  : "Locked"}
+                  : "Fields Disabled (Complete Section 3 first)"}
               </td>
+            </tr>
+            <tr>
+              <td>Section 3</td>
+              <td>Contact Information</td>
+              <td>{completedPages.includes("page3") ? "Completed" : "Incomplete"}</td>
             </tr>
           </tbody>
         </table>

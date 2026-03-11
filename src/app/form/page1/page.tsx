@@ -8,7 +8,7 @@ import type { GovFormStateData, Page1Data } from "@/lib/types";
 
 export default function FormPage1() {
   const { ready } = useCookieOverride();
-  const { state, refreshState, patchState } = useStateApi();
+  const { state, refreshState } = useStateApi();
   const initRef = useRef(false);
 
   const [formData, setFormData] = useState<Page1Data>({
@@ -39,17 +39,6 @@ export default function FormPage1() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleSaveComplete = useCallback(() => {
-    const data = state?.state.data as GovFormStateData | undefined;
-    const completed = data?.completed_pages || [];
-    if (!completed.includes("page1")) {
-      // Mark page1 as completed when navigating away
-      patchState({
-        completed_pages: [...completed, "page1"],
-      });
-    }
-  }, [state, patchState]);
-
   if (!ready) return null;
 
   const stateData = state?.state.data as GovFormStateData | undefined;
@@ -61,7 +50,6 @@ export default function FormPage1() {
         currentPage="page1"
         completedPages={completedPages}
         formData={formData}
-        onSaveComplete={handleSaveComplete}
       />
 
       <div className="gov-section">

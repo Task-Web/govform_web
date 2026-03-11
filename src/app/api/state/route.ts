@@ -5,10 +5,9 @@ import { fileStore } from "@/lib/file-store";
 import { applyDelay } from "@/lib/delay";
 import { StateRequest, StatePatchRequest } from "@/lib/types";
 
-// GET /api/state - Retrieve current user state
+// GET /api/state - Retrieve current user state (no delay on reads)
 export async function GET(request: NextRequest) {
   const userId = await getUserId(request);
-  await applyDelay(userId);
   const state = await stateStore.getState(userId);
 
   return createResponseWithCookie({ user_id: userId, state }, userId);

@@ -8,7 +8,7 @@ import type { GovFormStateData, Page3Data } from "@/lib/types";
 
 export default function FormPage3() {
   const { ready } = useCookieOverride();
-  const { state, refreshState, patchState } = useStateApi();
+  const { state, refreshState } = useStateApi();
   const initRef = useRef(false);
 
   const [formData, setFormData] = useState<Page3Data>({
@@ -40,16 +40,6 @@ export default function FormPage3() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleSaveComplete = useCallback(() => {
-    const data = state?.state.data as GovFormStateData | undefined;
-    const completed = data?.completed_pages || [];
-    if (!completed.includes("page3")) {
-      patchState({
-        completed_pages: [...completed, "page3"],
-      });
-    }
-  }, [state, patchState]);
-
   if (!ready) return null;
 
   const stateData = state?.state.data as GovFormStateData | undefined;
@@ -61,7 +51,7 @@ export default function FormPage3() {
         currentPage="page3"
         completedPages={completedPages}
         formData={formData}
-        onSaveComplete={handleSaveComplete}
+
       />
 
       <div className="gov-section">
@@ -148,12 +138,11 @@ export default function FormPage3() {
         </div>
       </div>
 
-      {completedPages.includes("page1") && (
-        <div className="gov-notice">
-          <strong>Note:</strong> After completing this section, you will be able to proceed
-          to Section 2 (Travel Document Information).
-        </div>
-      )}
+      <div className="gov-notice">
+        <strong>Note:</strong> Completing all required fields in this section will unlock
+        the fields in Section 2 (Travel Document Information). If you have not yet filled
+        Section 2, please navigate back after submitting.
+      </div>
     </div>
   );
 }

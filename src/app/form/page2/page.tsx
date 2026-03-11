@@ -1,16 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useCookieOverride } from "@/hooks/use-cookie-override";
 import { useStateApi } from "@/hooks/use-state-api";
 import FormNavigation from "@/components/FormNavigation";
-import type { GovFormStateData, Page2Data } from "@/lib/types";
+import type { GovFormStateData, Page2Data, Page3Data } from "@/lib/types";
+
+function isPage3Filled(page3: Page3Data): boolean {
+  return !!(
+    page3.email &&
+    page3.phone &&
+    page3.address &&
+    page3.city &&
+    page3.postal_code &&
+    page3.country
+  );
+}
 
 export default function FormPage2() {
   const { ready } = useCookieOverride();
-  const { state, refreshState, patchState } = useStateApi();
-  const router = useRouter();
+  const { state, refreshState } = useStateApi();
   const initRef = useRef(false);
 
   const [formData, setFormData] = useState<Page2Data>({
@@ -31,50 +40,22 @@ export default function FormPage2() {
   useEffect(() => {
     if (state) {
       const data = state.state.data as GovFormStateData;
-
-      // Redirect if page is locked (page1 and page3 not completed)
-      const completed = data.completed_pages || [];
-      if (!completed.includes("page1") || !completed.includes("page3")) {
-        router.push("/form/page1");
-        return;
-      }
-
       if (data.form?.page2) {
         setFormData(data.form.page2);
       }
     }
-  }, [state, router]);
+  }, [state]);
 
   const handleChange = useCallback((field: keyof Page2Data, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleSaveComplete = useCallback(() => {
-    const data = state?.state.data as GovFormStateData | undefined;
-    const completed = data?.completed_pages || [];
-    if (!completed.includes("page2")) {
-      patchState({
-        completed_pages: [...completed, "page2"],
-      });
-    }
-  }, [state, patchState]);
-
   if (!ready) return null;
 
   const stateData = state?.state.data as GovFormStateData | undefined;
   const completedPages = stateData?.completed_pages || [];
-
-  // Don't render form if locked
-  if (!completedPages.includes("page1") || !completedPages.includes("page3")) {
-    return (
-      <div className="gov-container">
-        <div className="gov-warning">
-          <strong>Access Denied:</strong> You must complete Section 1 and Section 3 before
-          accessing Section 2. You are being redirected...
-        </div>
-      </div>
-    );
-  }
+  const page3Data = stateData?.form?.page3;
+  const fieldsEnabled = page3Data ? isPage3Filled(page3Data) : false;
 
   return (
     <div className="gov-container">
@@ -82,11 +63,19 @@ export default function FormPage2() {
         currentPage="page2"
         completedPages={completedPages}
         formData={formData}
-        onSaveComplete={handleSaveComplete}
+
       />
 
       <div className="gov-section">
         <h2>Section 2: Travel Document Information</h2>
+
+        {!fieldsEnabled && (
+          <div className="gov-warning">
+            <strong>Fields Disabled:</strong> All fields in this section are disabled because
+            Section 3 (Contact Information) has not been completed. Please navigate to
+            Section 3, fill in all required fields, then return to this section.
+          </div>
+        )}
 
         <div className="gov-notice">
           <strong>Instructions:</strong> Provide your travel document details as they appear
@@ -104,6 +93,7 @@ export default function FormPage2() {
             onChange={(e) => handleChange("passport_number", e.target.value)}
             placeholder="e.g., AB1234567"
             style={{ maxWidth: "200px" }}
+            disabled={!fieldsEnabled}
           />
         </div>
 
@@ -114,6 +104,7 @@ export default function FormPage2() {
           <select
             value={formData.visa_type}
             onChange={(e) => handleChange("visa_type", e.target.value)}
+            disabled={!fieldsEnabled}
           >
             <option value="">-- Select Visa Type --</option>
             <option value="tourist">Tourist Visa (B-2)</option>
@@ -133,6 +124,7 @@ export default function FormPage2() {
           <select
             value={formData.travel_purpose}
             onChange={(e) => handleChange("travel_purpose", e.target.value)}
+            disabled={!fieldsEnabled}
           >
             <option value="">-- Select Purpose --</option>
             <option value="tourism">Tourism / Vacation</option>
@@ -154,6 +146,7 @@ export default function FormPage2() {
             type="date"
             value={formData.arrival_date}
             onChange={(e) => handleChange("arrival_date", e.target.value)}
+            disabled={!fieldsEnabled}
           />
         </div>
 
@@ -165,6 +158,7 @@ export default function FormPage2() {
             type="date"
             value={formData.departure_date}
             onChange={(e) => handleChange("departure_date", e.target.value)}
+            disabled={!fieldsEnabled}
           />
         </div>
       </div>

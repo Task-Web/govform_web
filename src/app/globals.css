@@ -87,8 +87,12 @@ hr {
   background-color: #cccccc;
 }
 
-.gov-btn:active {
-  border-style: inset;
+.gov-btn:active,
+.gov-btn:focus,
+.gov-btn:focus-visible {
+  border-style: outset;
+  outline: none;
+  box-shadow: none;
 }
 
 .gov-btn:disabled {
