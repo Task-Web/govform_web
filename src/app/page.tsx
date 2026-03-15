@@ -85,12 +85,6 @@ export default function Home() {
           at the top of each page to navigate between sections. The page indicator at the top
           shows your current progress.
         </div>
-
-        <div className="gov-notice">
-          <strong>Note on Processing:</strong> The system may experience delays when processing
-          your submissions. Please be patient after clicking navigation buttons &mdash; do not
-          click multiple times. There may be no visual indication that processing is in progress.
-        </div>
       </div>
 
       <div className="gov-section">
